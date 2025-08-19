@@ -10,7 +10,8 @@ from torch.utils.data import DataLoader
 from utils.logger import logger # Assuming logger is in the same directory or utils
 # Make sure to import your metric calculation functions
 from utils.metrics import compute_segmentation_metrics, compute_classification_metrics
-
+from typing import Tuple, Dict
+import numpy as np
 # Keep your train_one_epoch and evaluate functions as they are,
 # but they will become methods of the Trainer class.
 
