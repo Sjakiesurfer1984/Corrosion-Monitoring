@@ -1,0 +1,57 @@
+The structure is designed so that `run_train.py` acts as the main "conductor," preparing all the components and then passing them to the `trainer` to execute the training process.
+
+```
++====================================================+
+|                   run_train.py                     |
+| (Main Script: Configures and starts the process)   |
++====================================================+
+       |
+       | 1. Imports and creates a Dataset/DataLoader from...
+       +----------------> +--------------------------+
+                          |  corrosion_dataset.py    |
+                          | (Loads images and masks) |
+                          +--------------------------+
+       |
+       | 2. Imports and creates the model architecture from...
+       +----------------> +--------------------------+
+                          |         model.py         |
+                          | (Defines the DeepLabV3)  |
+                          +--------------------------+
+       |
+       | 3. Imports and uses the main training class from...
+       +----------------> +--------------------------+
+                          |        trainer.py        |
+                          | (Handles the training   |
+                          |  and validation loops)   |
+                          +--------------------------+
+                                     |
+                                     |...which in turn uses these utilities:
+                                     |
+                                     +--> +-----------------+
+                                     |    |   metrics.py    |
+                                     |    | (Calculates mIoU, |
+                                     |    |  F1, etc.)      |
+                                     |    +-----------------+
+                                     |
+                                     +--> +-----------------+
+                                          |    logger.py    |
+                                          | (Prints info to |
+                                          |   the console)  |
+                                          +-----------------+
+
+
++====================================================+
+|      run_inference.py (For visualizing results)    |
++====================================================+
+       |
+       | 1. Imports the same model...
+       +----------------> +--------------------------+
+       |                  |         model.py         |
+       |                  +--------------------------+
+       |
+       | 2. Imports visualization functions from...
+       +----------------> +--------------------------+
+                          |       visualize.py       |
+                          | (Draws predicted masks)  |
+                          +--------------------------+
+```

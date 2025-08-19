@@ -1,0 +1,10 @@
+# Python virtual environment
+.venv/
+__pycache__/
+
+# VSCode settings
+.vscode/
+
+# Saved models and data
+_saved_models/
+data/
