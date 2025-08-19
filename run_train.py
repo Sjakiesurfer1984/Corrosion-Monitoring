@@ -27,16 +27,21 @@ def get_args() -> argparse.Namespace:
     # Create a parser object
     parser = argparse.ArgumentParser(description="Train a semantic segmentation model.")
 
-    # Add arguments. Each 'add_argument' defines a setting we can control from the command line.
-    parser.add_argument("--model-name", type=str, default="deeplabv3_resnet50", help="Name of the model from the model factory.")
-    parser.add_argument("--epochs", type=int, default=25, help="Number of training epochs.")
-    parser.add_argument("--batch-size", type=int, default=4, help="Number of samples per batch.")
-    parser.add_argument("--lr", type=float, default=1e-4, help="The learning rate for the optimizer.")
-    parser.add_argument("--image-dir", type=str, required=True, help="Path to the training images.")
-    parser.add_argument("--mask-dir", type=str, required=True, help="Path to the training masks.")
-    # Add arguments for validation data
-    parser.add_argument("--val-image-dir", type=str, required=True, help="Path to the validation images.")
-    parser.add_argument("--val-mask-dir", type=str, required=True, help="Path to the validation masks.")
+    # --- Experiment Hyperparameters ---
+    parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs.")
+    parser.add_argument("--batch_size", type=int, default=4, help="Number of samples per batch.")
+    parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate for the optimizer.")
+    parser.add_argument("--num_classes", type=int, default=4, help="Number of classes including background.")
+
+    # --- Data Paths (Set your default paths ONCE here) ---
+    parser.add_argument("--train_img_dir", type=str, default="data/Train/images_512", help="Path to training images.")
+    parser.add_argument("--train_mask_dir", type=str, default="data/Train/mask_512", help="Path to training masks.")
+    parser.add_argument("--val_img_dir", type=str, default="data/val/images_512", help="Path to validation images.")
+    parser.add_argument("--val_mask_dir", type=str, default="data/val/mask_512", help="Path to validation masks.")
+    
+    # --- System Configuration ---
+    parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use for training (cuda or cpu).")
+    parser.add_argument("--num_workers", type=int, default=2, help="Number of worker processes for data loading.")
 
     # The `parse_args()` method reads the command-line inputs and returns an object
     # containing all the values.
