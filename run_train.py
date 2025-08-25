@@ -1,128 +1,151 @@
-#run_train.py
-# This file is the "conductor". It's responsible for preparing all the pieces (data, model, optimizer) 
-# and then handing them over to the Trainer to run the show.
 # run_train.py
-import torch
-from torch.utils.data import DataLoader
-import argparse  # We import the argparse library to handle command-line arguments.
-from typing import List
 
-# Import our refactored, flexible components
-# This correctly imports from the 'model.py' file inside the 'model' folder
-from model.model import get_model
+import argparse
+from torch.utils.data import DataLoader
+import pytorch_lightning as pl
+from typing import List, Callable, Optional
+
+# Callbacks are special objects that can perform actions at various stages of training.
+# They are like plugins for our training loop.
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
+
+# Loggers handle the process of sending our metrics (loss, mIoU, etc.) to a
+# visualization service like Weights & Biases or TensorBoard.
+from pytorch_lightning.loggers import WandbLogger
+
+# Import our data-handling classes and the new LightningModule
 from dataset.corrosion_dataset import (
     CorrosionDataset,
     JointTransforms,
     JointRandomHorizontalFlip,
     JointRandomRotation
 )
-from train.trainer import Trainer
+from model.lightning_model import CorrosionSegmenter
 
-# --- CONFIGURATION VIA ARGUMENTS ---
-def get_args() -> argparse.Namespace:
-    """
-    This function sets up and parses command-line arguments.
-    It's a clean way to manage all the settings for a training run.
-    """
-    # Create a parser object
-    parser = argparse.ArgumentParser(description="Train a semantic segmentation model.")
-
-    # --- Experiment Hyperparameters ---
-    parser.add_argument("--epochs", type=int, default=10, help="Number of training epochs.")
-    parser.add_argument("--batch_size", type=int, default=4, help="Number of samples per batch.")
-    parser.add_argument("--lr", type=float, default=1e-4, help="Learning rate for the optimizer.")
-    parser.add_argument("--num_classes", type=int, default=4, help="Number of classes including background.")
-
-    # --- Data Paths (Set your default paths ONCE here) ---
-    parser.add_argument("--train_img_dir", type=str, default="data/Train/images_512", help="Path to training images.")
-    parser.add_argument("--train_mask_dir", type=str, default="data/Train/mask_512", help="Path to training masks.")
-    parser.add_argument("--val_img_dir", type=str, default="data/val/images_512", help="Path to validation images.")
-    parser.add_argument("--val_mask_dir", type=str, default="data/val/mask_512", help="Path to validation masks.")
-    
-    # --- System Configuration ---
-    parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use for training (cuda or cpu).")
-    parser.add_argument("--num_workers", type=int, default=2, help="Number of worker processes for data loading.")
-
-    # The `parse_args()` method reads the command-line inputs and returns an object
-    # containing all the values.
-    return parser.parse_args()
 
 def main() -> None:
-    """The main function that orchestrates the entire training process."""
-    args = get_args()
+    """
+    The main function that sets up the data, model, and trainer, then starts the training.
+    This function does not return anything, hence '-> None'.
+    """
+    # --- 1. ARGUMENT PARSING ---
+    # We use Python's `argparse` library to create a command-line interface for our script.
+    # This allows us to easily experiment with different settings (like learning rate or model architecture)
+    # without having to change the code every time.
+    parser = argparse.ArgumentParser(description="Train a corrosion segmentation model with PyTorch Lightning.")
+    parser.add_argument("--model-name", type=str, default="deeplabv3_resnet50", help="Model architecture to use.")
+    parser.add_argument("--learning-rate", type=float, default=1e-4, help="Initial learning rate.")
+    parser.add_argument("--batch-size", type=int, default=4, help="Batch size for training and validation.")
+    parser.add_argument("--max-epochs", type=int, default=2, help="Maximum number of epochs to train.")
+    parser.add_argument("--image-dir", type=str, required=True, help="Path to the training images.")
+    parser.add_argument("--mask-dir", type=str, required=True, help="Path to the training masks.")
+    parser.add_argument("--val-image-dir", type=str, required=True, help="Path to the validation images.")
+    parser.add_argument("--val-mask-dir", type=str, required=True, help="Path to the validation masks.")
+    
+    # `parse_args()` returns an object where each argument is an attribute.
+    args: argparse.Namespace = parser.parse_args()
 
-    # Set the device. It's crucial to send your model and data to the GPU if you have one.
-    DEVICE: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Using device: {DEVICE}")
-
-    # Define the number of classes. It's 4 because we have 3 corrosion types + 1 background class.
-    NUM_CLASSES: int = 4
-
-    # 1. --- DATASETS and DATALOADERS ---
-
-    # Define the augmentation pipeline for the training set. We can chain multiple
-    # transformations together using our JointTransforms helper class.
-    train_augs = JointTransforms([
+    # --- 2. DATA SETUP ---
+    # Define the augmentation pipeline for the training data. Augmentations like flipping and rotating
+    # create new variations of our training images. This helps the model generalize better and prevents it
+    # from simply memorizing the training set.
+    train_augs: Callable = JointTransforms([
         JointRandomHorizontalFlip(p=0.5),
         JointRandomRotation(degrees=(-15, 15))
-        # You could add a JointRandomCrop class here for more augmentation!
     ])
 
-    # Create the training dataset, passing in our augmentation pipeline.
-    train_dataset = CorrosionDataset(
+    # Create the training dataset instance, passing in our augmentation pipeline.
+    train_dataset: CorrosionDataset = CorrosionDataset(
         image_dir=args.image_dir,
         mask_dir=args.mask_dir,
         augmentations=train_augs
     )
-
-    # Create the validation dataset.
-    # IMPORTANT: The validation set should NOT have random augmentations.
-    # We need a stable, consistent benchmark to measure our model's progress.
-    val_dataset = CorrosionDataset(
+    
+    # IMPORTANT: The validation set should NOT have random augmentations. We need a consistent,
+    # stable benchmark to measure the model's true performance at the end of each epoch.
+    val_dataset: CorrosionDataset = CorrosionDataset(
         image_dir=args.val_image_dir,
         mask_dir=args.val_mask_dir,
-        augmentations=None  # No augmentations!
+        augmentations=None
     )
 
-    # The DataLoader is a PyTorch utility that takes our Dataset and automatically
-    # handles batching, shuffling, and multi-threaded data loading for us.
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=2)
-
-    # 2. --- MODEL ---
-    # We call our model factory to get the desired model architecture.
-    model: torch.nn.Module = get_model(model_name=args.model_name, num_classes=NUM_CLASSES).to(DEVICE)
-
-    # 3. --- LOSS, OPTIMIZER, SCHEDULER ---
-    # The loss function measures how wrong the model's predictions are.
-    # CrossEntropyLoss is the standard for multi-class segmentation.
-    criterion = torch.nn.CrossEntropyLoss()
-
-    # The optimizer's job is to update the model's weights to reduce the loss.
-    # Adam is a very popular and effective general-purpose optimizer.
-    # We could also try SGD (stochastic gradient descent)
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-
-    # A learning rate scheduler can adjust the learning rate during training
-    # (e.g., reduce it if the validation loss stops improving). This can help find a better solution.
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.1, patience=5)
-
-    # 4. --- INITIALIZE and RUN THE TRAINER ---
-    trainer = Trainer(
-        model=model,
-        optimizer=optimizer,
-        criterion=criterion,
-        train_loader=train_loader,
-        val_loader=val_loader,
-        device=DEVICE,
-        scheduler=scheduler
+    # The DataLoader is a PyTorch utility that takes our Dataset and automatically handles
+    # batching, shuffling, and multi-threaded data loading. `num_workers > 0` uses
+    # separate processes to load data, which prevents the GPU from waiting for data to be ready.
+    train_loader: DataLoader = DataLoader(
+        train_dataset,
+        batch_size=args.batch_size,
+        shuffle=True,
+        num_workers=8, # This uses 8 worker processes to load data in parallel. A worker is a separate process that loads data.
+        persistent_workers=True # This ensures that the worker processes stay alive after the first epoch,
+        # which can speed up subsequent epochs by avoiding the overhead of starting new processes.
+    )
+    val_loader: DataLoader = DataLoader(
+        val_dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=8,
+        persistent_workers=True 
     )
 
-    # We can create a unique output directory for each run based on the model name.
-    output_dir = f"_saved_models/{args.model_name}"
-    trainer.run(num_epochs=args.epochs, output_dir=output_dir)
+    # --- 3. MODEL INITIALIZATION ---
+    # We create an instance of our `CorrosionSegmenter` LightningModule, passing in the hyperparameters
+    # from our command-line arguments.
+    model: CorrosionSegmenter = CorrosionSegmenter(
+        model_name=args.model_name,
+        num_classes=4,  # Background + 3 corrosion types
+        learning_rate=args.learning_rate
+    )
+
+    # --- 4. CALLBACKS & LOGGERS ---
+    
+    # The ModelCheckpoint callback is responsible for saving our model during training.
+    # It will monitor a specific metric and save the best-performing version of the model.
+
+    # TO DO: We have to save every epoch, because the best model might be at the end. Hence, a crash before reaching the best performance would lose all the effort and time spent.
+    # However, this takes a lot of disk space. A better solution would be to save only the best model so far, and delete the previous best model.
+    # This can be done by setting `save_top_k=1` in the ModelCheckpoint callback.
+    # Hence, this checkpoint callback is setup correctly. If the programme were to crash mid-training, we would only lose the progress since the last best model was saved.
+    # and we could resume training from that point.
+    # How? By adding `resume_from_checkpoint="path/to/checkpoint.ckpt"` to the `pl.Trainer()` initialization below.
+    checkpoint_callback: ModelCheckpoint = ModelCheckpoint(
+        monitor="val/mIoU",   # The metric to watch.
+        mode="max",           # 'max' means we want the highest mIoU, as higher is better.
+        save_top_k=1,         # Save only the single best model checkpoint.
+        dirpath="_saved_models/", # Directory where the checkpoints will be saved.
+        filename=f"{args.model_name}-{{epoch:02d}}-{{val/mIoU:.4f}}" # A descriptive filename.
+    )
+    
+    # The EarlyStopping callback can stop the training process automatically if the model's
+    # performance on the validation set stops improving, which helps prevent overfitting.
+    early_stopping_callback: EarlyStopping = EarlyStopping(
+        monitor="val/loss", # The metric to watch for improvement.
+        patience=5          # Number of epochs to wait for improvement before stopping.
+    )
+    
+    # The logger handles sending all the metrics we log with `self.log()` in our LightningModule
+    # to an external service. Here, we're using Weights & Biases.
+    wandb_logger: WandbLogger = WandbLogger(project="corrosion-segmentation-lightning")
+
+    # --- 5. TRAINER INITIALIZATION ---
+    # The `Trainer` is the heart of PyTorch Lightning. It automates every aspect of the training loop,
+    # including device management (moving data to the GPU), calling the optimizer, backpropagation,
+    # and executing the callbacks and loggers at the correct times.
+    trainer: pl.Trainer = pl.Trainer(
+        max_epochs=args.max_epochs,
+        accelerator="auto", # Automatically selects the best hardware (GPU, TPU, etc.).
+        devices="auto",     # Automatically uses all available devices of the selected type.
+        logger=wandb_logger,
+        callbacks=[checkpoint_callback, early_stopping_callback]
+    )
+
+    # --- 6. START TRAINING ---
+    # This single line kicks off the entire training and validation process. The Trainer
+    # will now run for `max_epochs`, calling the appropriate methods in our `CorrosionSegmenter`
+    # and using the dataloaders, callbacks, and logger we provided.
+    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
 if __name__ == "__main__":
-    # This standard Python construct ensures that main() is called only when
-    # this script is executed directly (not when it's imported by another script).
+    # This standard Python construct ensures that the `main()` function is called only
+    # when this script is executed directly from the command line.
     main()
