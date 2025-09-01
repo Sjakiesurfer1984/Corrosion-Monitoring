@@ -29,7 +29,8 @@ class CorrosionSegmenter(pl.LightningModule):
         self,
         model_name: str = "deeplabv3_resnet50",
         num_classes: int = 4,
-        learning_rate: float = 1e-4
+        learning_rate: float = 1e-4,
+        freeze_backbone: bool = False
     ):
         """
         The constructor for our LightningModule.
@@ -52,6 +53,25 @@ class CorrosionSegmenter(pl.LightningModule):
         # neural network architecture.
         # ------------------------------ FETCHING THE MODEL, DEFINED IN MODEL.PY -----------------------------
         self.model = get_model(model_name=self.hparams.model_name, num_classes=self.hparams.num_classes)
+
+        # ------------------ ADDED LOGIC FOR FREEZING THE BACKBONE ------------------
+        if freeze_backbone:
+            # Check the model name to find the correct backbone to freeze
+            if self.hparams.model_name == "deeplabv3_resnet50":
+                # The backbone for DeepLabV3 is the `model.backbone` attribute.
+                # We iterate over its parameters and set `requires_grad` to False.
+                for param in self.model.backbone.parameters():
+                    param.requires_grad = False
+                print("Backbone for deeplabv3_resnet50 is frozen.")
+            elif self.hparams.model_name == "fcn_resnet50":
+                # The backbone for FCN is also `model.backbone`.
+                for param in self.model.backbone.parameters():
+                    param.requires_grad = False
+                print("Backbone for fcn_resnet50 is frozen.")
+            else:
+                print("Backbone freezing not supported for this model.")
+
+
 
         # 2. The Loss Function
         # We define the criterion that will be used to measure the error of the predictions.

@@ -1,0 +1,81 @@
+C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\callbacks\model_checkpoint.py:701: Checkpoint directory C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\_saved_models exists and is not empty.
+
+  | Name      | Type                   | Params | Mode
+-------------------------------------------------------------
+0 | model     | DeepLabV3              | 42.0 M | train
+1 | criterion | CrossEntropyLoss       | 0      | train
+2 | val_iou   | MulticlassJaccardIndex | 0      | train
+3 | val_f1    | MulticlassF1Score      | 0      | train
+4 | test_iou  | MulticlassJaccardIndex | 0      | train
+5 | test_f1   | MulticlassF1Score      | 0      | train
+-------------------------------------------------------------
+42.0 M    Trainable params
+0         Non-trainable params
+42.0 M    Total params
+167.981   Total estimated model params size (MB)
+194       Modules in train mode
+0         Modules in eval mode
+Sanity Checking: |                                                                                                                                                                                                                             | 0/? [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "c:\Users\TimVos\VSC Projects\Corrosion-Monitoring\run_train.py", line 199, in <module>
+    main()
+    ~~~~^^
+  File "c:\Users\TimVos\VSC Projects\Corrosion-Monitoring\run_train.py", line 193, in main
+    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\trainer\trainer.py", line 561, in fit
+    call._call_and_handle_interrupt(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, self._fit_impl, model, train_dataloaders, val_dataloaders, datamodule, ckpt_path
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\trainer\call.py", line 49, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\trainer\trainer.py", line 599, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\trainer\trainer.py", line 1012, in _run
+    results = self._run_stage()
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\trainer\trainer.py", line 1054, in _run_stage
+    self._run_sanity_check()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\trainer\trainer.py", line 1083, in _run_sanity_check
+    val_loop.run()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\loops\utilities.py", line 179, in _decorator
+    return loop_run(self, *args, **kwargs)
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\loops\evaluation_loop.py", line 138, in run
+    batch, batch_idx, dataloader_idx = next(data_fetcher)
+                                       ~~~~^^^^^^^^^^^^^^
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\loops\fetchers.py", line 134, in __next__
+    batch = super().__next__()
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\loops\fetchers.py", line 61, in __next__
+    batch = next(self.iterator)
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\utilities\combined_loader.py", line 341, in __next__
+    out = next(self._iterator)
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\utilities\combined_loader.py", line 142, in __next__
+    out = next(self.iterators[0])
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 734, in __next__
+    data = self._next_data()
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 1516, in _next_data
+    return self._process_data(data, worker_id)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 1551, in _process_data
+    data.reraise()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\torch\_utils.py", line 769, in reraise
+    raise exception
+IndexError: Caught IndexError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\torch\utils\data\_utils\worker.py", line 349, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\torch\utils\data\_utils\fetch.py", line 50, in fetch
+    data = self.dataset.__getitems__(possibly_batched_index)
+  File "C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\torch\utils\data\dataset.py", line 416, in __getitems__
+    return [self.dataset[self.indices[idx]] for idx in indices]
+            ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "c:\Users\TimVos\VSC Projects\Corrosion-Monitoring\dataset\corrosion_dataset.py", line 233, in __getitem__
+    img_path = self.image_paths[idx]
+               ~~~~~~~~~~~~~~~~^^^^^
+IndexError: list index out of range

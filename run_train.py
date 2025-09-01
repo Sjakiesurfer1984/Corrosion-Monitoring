@@ -27,7 +27,7 @@ from dataset.corrosion_dataset import (
     JointRandomHorizontalFlip,
     JointRandomRotation
 )
-# We import our PyTorch Lightning model, which contains the full training logic.
+# We import our PyTorch Lightning model defined in ligthning_model.py, which contains the full training logic.
 from model.lightning_model import CorrosionSegmenter
 
 
@@ -50,11 +50,11 @@ def main() -> None:
     model_name: str = "deeplabv3_resnet50"
     learning_rate: float = 1e-4
     batch_size: int = 4
-    max_epochs: int = 20
-    image_dir: str = "data/train/images"
-    mask_dir: str = "data/train/masks"
-    val_image_dir: str = "data/val/images"
-    val_mask_dir: str = "data/val/masks"
+    max_epochs: int = 5
+    image_dir: str = r"data\processed\train\images_512"
+    mask_dir: str = r"data\processed\train\mask_512"
+    val_image_dir: str = r"data\processed\val\images_512"
+    val_mask_dir: str = r"data\processed\val\mask_512"
 
     # --- 2. ARGUMENT SELECTION ---
     # This section gets the correct values based on the flag you set above.
@@ -119,8 +119,8 @@ def main() -> None:
     if debug_mode_selected:
         print("Running in debug mode. Using a very small dataset.")
         # We use PyTorch's `Subset` class to create a small dataset.
-        train_dataset: Subset = Subset(train_dataset_full, range(32))
-        val_dataset: Subset = Subset(val_dataset_full, range(32))
+        train_dataset: Subset = Subset(train_dataset_full, range(4))
+        val_dataset: Subset = Subset(val_dataset_full, range(4))
     else:
         # If not in debug mode, we use the full datasets.
         train_dataset: CorrosionDataset = train_dataset_full
@@ -192,6 +192,23 @@ def main() -> None:
     # This single line kicks off the entire process.
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
 
+
+    # --- 8. POST-TRAINING EVALUATION (OPTIONAL) ---
+    # After training, we can evaluate the best model on the validation set.
+    print("Training complete. Best model saved at:", checkpoint_callback.best_model_path)
+    print("Best validation mIoU:", checkpoint_callback.best_model_score.item())
+
+    # --- 9. TEST SET EVALUATION (OPTIONAL) ---
+    # If you have a separate test set, you can evaluate the best model on it here
+    # by loading the best checkpoint and calling `trainer.test()`.
+    # Uncomment and modify the following lines if you have a test set.
+    # test_image_dir = "data/test/images"
+    # test_mask_dir = "data/test/masks"
+    # test_dataset = CorrosionDataset(image_dir=test_image_dir, mask_dir=test_mask_dir, augmentations=None)
+    # test_loader = DataLoader(test_dataset, batch_size=batch_size_selected, shuffle=False, num_workers=8, persistent_workers=True)
+    # best_model = CorrosionSegmenter.load_from_checkpoint(checkpoint_callback.best_model_path)
+    # trainer.test(best_model, dataloaders=test_loader)
+    
 
 if __name__ == "__main__":
     # This standard Python construct ensures that the `main()` function is called

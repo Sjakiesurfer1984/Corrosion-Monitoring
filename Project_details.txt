@@ -1,5 +1,8 @@
 The structure is designed so that `run_train.py` acts as the main "conductor," preparing all the components and then passing them to the `trainer` to execute the training process.
 
+Dataset: https://data.lib.vt.edu/articles/dataset/Corrosion_Condition_State_Semantic_Segmentation_Dataset/16624663
+
+
 ```
 +====================================================+
 |                   run_train.py                     |

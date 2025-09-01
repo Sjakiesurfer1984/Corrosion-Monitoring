@@ -1,0 +1,21 @@
+C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\callbacks\model_checkpoint.py:701: Checkpoint directory C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\_saved_models exists and is not empty.
+
+  | Name      | Type                   | Params | Mode
+-------------------------------------------------------------
+0 | model     | DeepLabV3              | 42.0 M | train
+1 | criterion | CrossEntropyLoss       | 0      | train
+2 | val_iou   | MulticlassJaccardIndex | 0      | train
+3 | val_f1    | MulticlassF1Score      | 0      | train
+4 | test_iou  | MulticlassJaccardIndex | 0      | train
+5 | test_f1   | MulticlassF1Score      | 0      | train
+-------------------------------------------------------------
+42.0 M    Trainable params
+0         Non-trainable params
+42.0 M    Total params
+167.981   Total estimated model params size (MB)
+194       Modules in train mode
+0         Modules in eval mode
+Epoch 4: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:34<00:00,  0.03it/s, v_num=ul_4, train/loss_step=1.170, train/loss_epoch=1.170]
+C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\loops\fit_loop.py:310: The number of training batches (1) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+                                                                                                                                                                                                                                                                     
+`Trainer.fit` stopped: `max_epochs=5` reached.

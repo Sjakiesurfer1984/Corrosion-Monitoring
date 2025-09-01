@@ -1,0 +1,11 @@
+{"time":"2025-09-01T15:19:57.3164708+08:00","level":"INFO","msg":"stream: starting","core version":"0.21.1"}
+{"time":"2025-09-01T15:19:57.909908+08:00","level":"INFO","msg":"stream: created new stream","id":"zt11zdsl"}
+{"time":"2025-09-01T15:19:57.909908+08:00","level":"INFO","msg":"stream: started","id":"zt11zdsl"}
+{"time":"2025-09-01T15:19:57.9106097+08:00","level":"INFO","msg":"writer: started","stream_id":"zt11zdsl"}
+{"time":"2025-09-01T15:19:57.9106097+08:00","level":"INFO","msg":"handler: started","stream_id":"zt11zdsl"}
+{"time":"2025-09-01T15:19:57.9106097+08:00","level":"INFO","msg":"sender: started","stream_id":"zt11zdsl"}
+{"time":"2025-09-01T15:20:08.8018473+08:00","level":"INFO","msg":"stream: closing","id":"zt11zdsl"}
+{"time":"2025-09-01T15:20:09.5707472+08:00","level":"INFO","msg":"fileTransfer: Close: file transfer manager closed"}
+{"time":"2025-09-01T15:20:10.0731354+08:00","level":"INFO","msg":"handler: closed","stream_id":"zt11zdsl"}
+{"time":"2025-09-01T15:20:10.0736406+08:00","level":"INFO","msg":"sender: closed","stream_id":"zt11zdsl"}
+{"time":"2025-09-01T15:20:10.0736406+08:00","level":"INFO","msg":"stream: closed","id":"zt11zdsl"}

@@ -1,0 +1,66 @@
+_wandb:
+    value:
+        cli_version: 0.21.1
+        e:
+            rbyrhwqa43mc7x2dxrpf8fmn34esgpzn:
+                codePath: run_train.py
+                codePathLocal: run_train.py
+                cpu_count: 4
+                cpu_count_logical: 8
+                disk:
+                    /:
+                        total: "510901874688"
+                        used: "363939545088"
+                email: tim.vos.nl@gmail.com
+                executable: C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Scripts\python.exe
+                git:
+                    commit: a4d3100d33ff9b48dff81a5a928db2cdff9394e5
+                    remote: https://github.com/Sjakiesurfer1984/Corrosion-Monitoring.git
+                host: AIE-LAPTOP-TIM
+                memory:
+                    total: "16844595200"
+                os: Windows-11-10.0.26100-SP0
+                program: c:\Users\TimVos\VSC Projects\Corrosion-Monitoring\run_train.py
+                python: CPython 3.13.5
+                root: .
+                startedAt: "2025-09-01T07:23:30.718292Z"
+                writerId: rbyrhwqa43mc7x2dxrpf8fmn34esgpzn
+        m:
+            - "1": trainer/global_step
+              "6":
+                - 3
+              "7": []
+            - "2": '*'
+              "5": 1
+              "6":
+                - 1
+              "7": []
+        python_version: 3.13.5
+        t:
+            "1":
+                - 1
+                - 9
+                - 41
+                - 103
+            "2":
+                - 1
+                - 9
+                - 41
+                - 103
+            "3":
+                - 7
+                - 66
+            "4": 3.13.5
+            "5": 0.21.1
+            "8":
+                - 3
+            "12": 0.21.1
+            "13": windows-amd64
+freeze_backbone:
+    value: false
+learning_rate:
+    value: 0.0001
+model_name:
+    value: deeplabv3_resnet50
+num_classes:
+    value: 4

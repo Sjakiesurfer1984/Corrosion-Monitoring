@@ -1,0 +1,28 @@
+{
+  "os":  "Windows-11-10.0.26100-SP0",
+  "python":  "CPython 3.13.5",
+  "startedAt":  "2025-09-01T07:18:10.243863Z",
+  "program":  "c:\\Users\\TimVos\\VSC Projects\\Corrosion-Monitoring\\run_train.py",
+  "codePath":  "run_train.py",
+  "codePathLocal":  "run_train.py",
+  "git":  {
+    "remote":  "https://github.com/Sjakiesurfer1984/Corrosion-Monitoring.git",
+    "commit":  "a4d3100d33ff9b48dff81a5a928db2cdff9394e5"
+  },
+  "email":  "tim.vos.nl@gmail.com",
+  "root":  ".",
+  "host":  "AIE-LAPTOP-TIM",
+  "executable":  "C:\\Users\\TimVos\\VSC Projects\\Corrosion-Monitoring\\.venv\\Scripts\\python.exe",
+  "cpu_count":  4,
+  "cpu_count_logical":  8,
+  "disk":  {
+    "/":  {
+      "total":  "510901874688",
+      "used":  "363932499968"
+    }
+  },
+  "memory":  {
+    "total":  "16844595200"
+  },
+  "writerId":  "52bjk798czdodzgmrmaclxggzlfnoq41"
+}
