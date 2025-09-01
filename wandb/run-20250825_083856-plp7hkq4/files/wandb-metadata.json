@@ -1,0 +1,38 @@
+{
+  "os":  "Windows-11-10.0.26100-SP0",
+  "python":  "CPython 3.13.5",
+  "startedAt":  "2025-08-25T00:38:56.104250Z",
+  "args":  [
+    "--image-dir",
+    "C:\\Users\\TimVos\\VSC Projects\\Corrosion-Monitoring\\data\\processed\\train\\images_512",
+    "--mask-dir",
+    "C:\\Users\\TimVos\\VSC Projects\\Corrosion-Monitoring\\data\\processed\\train\\mask_512",
+    "--val-image-dir",
+    "C:\\Users\\TimVos\\VSC Projects\\Corrosion-Monitoring\\data\\processed\\val\\images_512",
+    "--val-mask-dir",
+    "C:\\Users\\TimVos\\VSC Projects\\Corrosion-Monitoring\\data\\processed\\val\\mask_512"
+  ],
+  "program":  "C:\\Users\\TimVos\\VSC Projects\\Corrosion-Monitoring\\run_train.py",
+  "codePath":  "run_train.py",
+  "codePathLocal":  "run_train.py",
+  "git":  {
+    "remote":  "https://github.com/Sjakiesurfer1984/Corrosion-Monitoring.git",
+    "commit":  "f0906fa377753945dc33760e09401b62610db2e0"
+  },
+  "email":  "tim.vos.nl@gmail.com",
+  "root":  ".",
+  "host":  "AIE-LAPTOP-TIM",
+  "executable":  "C:\\Users\\TimVos\\VSC Projects\\Corrosion-Monitoring\\.venv\\Scripts\\python.exe",
+  "cpu_count":  4,
+  "cpu_count_logical":  8,
+  "disk":  {
+    "/":  {
+      "total":  "510901874688",
+      "used":  "403443445760"
+    }
+  },
+  "memory":  {
+    "total":  "16844595200"
+  },
+  "writerId":  "muj4xlf6qjuhtph0h7xufa7kno7m8r42"
+}

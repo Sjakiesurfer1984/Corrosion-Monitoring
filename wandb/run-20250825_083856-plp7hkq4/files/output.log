@@ -1,0 +1,19 @@
+
+  | Name      | Type                   | Params | Mode
+-------------------------------------------------------------
+0 | model     | DeepLabV3              | 42.0 M | train
+1 | criterion | CrossEntropyLoss       | 0      | train
+2 | val_iou   | MulticlassJaccardIndex | 0      | train
+3 | val_f1    | MulticlassF1Score      | 0      | train
+4 | test_iou  | MulticlassJaccardIndex | 0      | train
+5 | test_f1   | MulticlassF1Score      | 0      | train
+-------------------------------------------------------------
+42.0 M    Trainable params
+0         Non-trainable params
+42.0 M    Total params
+167.981   Total estimated model params size (MB)
+194       Modules in train mode
+0         Modules in eval mode
+Epoch 1: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 99/99 [45:36<00:00,  0.04it/s, v_num=hkq4, train/loss_step=0.207, train/loss_epoch=0.293]
+                                                                                                                                                                                                                          
+`Trainer.fit` stopped: `max_epochs=2` reached.

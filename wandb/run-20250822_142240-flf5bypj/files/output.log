@@ -1,0 +1,19 @@
+
+  | Name      | Type                   | Params | Mode
+-------------------------------------------------------------
+0 | model     | DeepLabV3              | 42.0 M | train
+1 | criterion | CrossEntropyLoss       | 0      | train
+2 | val_iou   | MulticlassJaccardIndex | 0      | train
+3 | val_f1    | MulticlassF1Score      | 0      | train
+4 | test_iou  | MulticlassJaccardIndex | 0      | train
+5 | test_f1   | MulticlassF1Score      | 0      | train
+-------------------------------------------------------------
+42.0 M    Trainable params
+0         Non-trainable params
+42.0 M    Total params
+167.981   Total estimated model params size (MB)
+194       Modules in train mode
+0         Modules in eval mode
+Epoch 0:  25%|██████████████████████████████████▌                                                                                                      | 25/99 [10:57<32:25,  0.04it/s, v_num=bypj, train/loss_step=0.928]
+C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\trainer\connectors\data_connector.py:428: Consider setting `persistent_workers=True` in 'val_dataloader' to speed up the dataloader worker initialization.
+C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Lib\site-packages\pytorch_lightning\trainer\connectors\data_connector.py:428: Consider setting `persistent_workers=True` in 'train_dataloader' to speed up the dataloader worker initialization.

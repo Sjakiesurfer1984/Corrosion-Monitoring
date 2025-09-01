@@ -1,0 +1,73 @@
+_wandb:
+    value:
+        cli_version: 0.21.1
+        e:
+            muj4xlf6qjuhtph0h7xufa7kno7m8r42:
+                args:
+                    - --image-dir
+                    - C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\data\processed\train\images_512
+                    - --mask-dir
+                    - C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\data\processed\train\mask_512
+                    - --val-image-dir
+                    - C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\data\processed\val\images_512
+                    - --val-mask-dir
+                    - C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\data\processed\val\mask_512
+                codePath: run_train.py
+                codePathLocal: run_train.py
+                cpu_count: 4
+                cpu_count_logical: 8
+                disk:
+                    /:
+                        total: "510901874688"
+                        used: "403443445760"
+                email: tim.vos.nl@gmail.com
+                executable: C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\.venv\Scripts\python.exe
+                git:
+                    commit: f0906fa377753945dc33760e09401b62610db2e0
+                    remote: https://github.com/Sjakiesurfer1984/Corrosion-Monitoring.git
+                host: AIE-LAPTOP-TIM
+                memory:
+                    total: "16844595200"
+                os: Windows-11-10.0.26100-SP0
+                program: C:\Users\TimVos\VSC Projects\Corrosion-Monitoring\run_train.py
+                python: CPython 3.13.5
+                root: .
+                startedAt: "2025-08-25T00:38:56.104250Z"
+                writerId: muj4xlf6qjuhtph0h7xufa7kno7m8r42
+        m:
+            - "1": trainer/global_step
+              "6":
+                - 3
+              "7": []
+            - "2": '*'
+              "5": 1
+              "6":
+                - 1
+              "7": []
+        python_version: 3.13.5
+        t:
+            "1":
+                - 1
+                - 9
+                - 41
+                - 103
+            "2":
+                - 1
+                - 9
+                - 41
+                - 103
+            "3":
+                - 7
+                - 66
+            "4": 3.13.5
+            "5": 0.21.1
+            "8":
+                - 3
+            "12": 0.21.1
+            "13": windows-amd64
+learning_rate:
+    value: 0.0001
+model_name:
+    value: deeplabv3_resnet50
+num_classes:
+    value: 4
