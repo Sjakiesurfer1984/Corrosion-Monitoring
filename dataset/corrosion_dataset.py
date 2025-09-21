@@ -229,7 +229,7 @@ class CorrosionDataset(Dataset):
 
         Returns:
             Tuple[torch.Tensor, torch.Tensor]: A tuple containing the processed image
-                                               tensor and the corresponding label mask tensor.
+            tensor and the corresponding label mask tensor.
         """
         # Get the file paths for the specific image and mask at this index.
         img_path = self.image_paths[idx]

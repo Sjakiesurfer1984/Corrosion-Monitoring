@@ -30,15 +30,15 @@ def get_model(model_name: str, num_classes: int) -> torch.nn.Module:
 
     Args:
         model_name (str): The name of the model you want to use.
-                          (e.g., "deeplabv3_resnet50", "fcn_resnet50").
-                          We make this case-insensitive.
+        (e.g., "deeplabv3_resnet50", "fcn_resnet50").
+        we make this case-insensitive.
 
         num_classes (int): The number of categories you want the model to predict.
-                           For our task, this would be 4 (Background, Fair, Poor, Severe).
+        For our task, this would be 4 (Background, Fair, Poor, Severe).
 
     Returns:
         torch.nn.Module: The constructed PyTorch model. `torch.nn.Module` is the
-                         base class for all neural networks in PyTorch.
+        base class for all neural networks in PyTorch.
     """
     # It's good practice to convert the input name to lowercase
     # to avoid errors from simple capitalization mistakes (e.g., "DeepLab" vs "deeplab").

@@ -12,6 +12,7 @@ from utils.logger import logger # Assuming logger is in the same directory or ut
 from utils.metrics import compute_segmentation_metrics, compute_classification_metrics
 from typing import Tuple, Dict
 import numpy as np
+import json
 # Keep your train_one_epoch and evaluate functions as they are,
 # but they will become methods of the Trainer class.
 
@@ -36,7 +37,7 @@ class Trainer:
         self.device = device
         self.scheduler = scheduler
         self.best_loss = float("inf")
-        self.output_dir = None # Will be set during training run
+        self.model_save_dir = None # Will be set during training run
 
     def _train_one_epoch(self, epoch):
         """Private method for training one epoch."""
@@ -53,7 +54,8 @@ class Trainer:
             self.optimizer.step()
 
             total_loss += loss.item()
-            if batch_idx % 10 == 0:
+            # print the loss every 5 epochs
+            if batch_idx % 5 == 0:
                 print(f"[Epoch {epoch+1}] Batch {batch_idx}/{len(self.train_loader)} — loss: {loss.item():.4f}")
         
         avg_loss = total_loss / len(self.train_loader)
@@ -63,7 +65,7 @@ class Trainer:
     # TO DO: define this method. 
     # Add metrics: Intersection over Union (IoU), Recall, F1, Precision, Accuracy. 
     @torch.no_grad()
-    def _evaluate(self) -> Tuple[float, float, Dict[str, float]]:
+    def _validate_one_epoch(self) -> Tuple[float, float, Dict[str, float]]:
         """
         Performs one full evaluation pass on the validation dataset.
         This now calculates and returns loss, mean IoU, and a dictionary of classification metrics.
@@ -101,6 +103,7 @@ class Trainer:
 
             # Use our helper function from metrics.py to get flattened labels and IoU scores for the batch.
             true, pred, iou = compute_segmentation_metrics(preds, masks)
+            # We use the extend method because
             all_true_labels.extend(true)
             all_pred_labels.extend(pred)
             all_iou_scores.extend(iou)
@@ -120,11 +123,11 @@ class Trainer:
         return avg_loss, miou, cls_metrics
 
 
-    def _setup_output_dir(self, output_dir):
+    def _setup_run_save_directory(self, output_dir):
         """Sets up the output directory for saving models."""
         project_root = Path(__file__).resolve().parent.parent
-        self.output_dir = project_root / output_dir / f"seg_{datetime.now():%Y%m%d_%H%M%S}"
-        os.makedirs(self.output_dir, exist_ok=True)
+        self.model_save_dir = project_root / output_dir / f"seg_{datetime.now():%Y%m%d_%H%M%S}"
+        os.makedirs(self.model_save_dir, exist_ok=True)
 
 
     def run(self, num_epochs: int, output_dir: str = "_saved_models") -> None:
@@ -139,27 +142,38 @@ class Trainer:
                             A unique sub-folder will be created inside this directory.
         """
         # This helper method creates a unique, timestamped directory for this specific training run.
-        self._setup_output_dir(output_dir)
+        self._setup_run_save_directory(output_dir)
         logger.info(f"Starting training on device: {self.device}")
-        logger.info(f"Models and logs will be saved to: {self.output_dir}")
+        logger.info(f"Models and logs will be saved to: {self.model_save_dir}")
 
         # The main loop that iterates through each epoch. An epoch is one full pass
         # through the entire training dataset.
+        val_loss_lst = []
+        train_loss_lst = []
+        miou_lst = []
+        cls_metrics_lst = []
+
         for epoch in range(num_epochs):
             print(f"\n===== Epoch {epoch + 1}/{num_epochs} =====")
 
-            # 1. --- TRAINING STEP ---
+            # --- TRAINING STEP ---
             # Call the private method to perform one full pass over the training data.
             # This is where the model learns and its weights are updated.
             train_loss = self._train_one_epoch(epoch)
-
-            # 2. --- VALIDATION STEP ---
+            train_loss_lst.append(train_loss)
+            # --- VALIDATION STEP ---
             # Call the private method to evaluate the model's performance on the
             # validation set, which it has not seen during training. This gives us an
             # unbiased measure of how well the model is generalizing.
-            val_loss, miou, cls_metrics = self._evaluate()
+            val_loss, miou, cls_metrics = self._validate_one_epoch()
+            val_loss_lst.append(val_loss)
+            miou_lst.append(miou)
+            cls_metrics_lst.append(cls_metrics)
 
-            # 3. --- LOGGING ---
+            # we should also keep track of all the metrics in a list, so we can later create local plots
+
+
+            # --- LOGGING ---
             # Log all the important metrics to a tracker like Weights & Biases (wandb).
             # This allows you to visualize the model's performance in real-time.
             if wandb.run:
@@ -179,32 +193,50 @@ class Trainer:
                 wandb.log(log_data)
                 logger.info(f"Logged metrics to W&B for epoch {epoch + 1}.")
 
-            # 4. --- SAVE EPOCH CHECKPOINT ---
+            # --- SAVE EPOCH CHECKPOINT ---
             # We save the model's state after every single epoch. This is crucial for
             # being able to go back and analyze the model at any point in its training history. It is also prudent to save each epoch, to 
-            # allow us to continue ou training after an unexpected interruption (e.g. a power failure, or a crash, or a bug).
+            # allow us to continue our training after an unexpected interruption (e.g. a power failure, or a crash, or a bug).
             # The `state_dict` is a Python dictionary that maps each layer to its learnable parameters (weights and biases).
-            epoch_ckpt_path = self.output_dir / f"epoch_{epoch:02d}.pth"
+            epoch_ckpt_path = self.model_save_dir / f"epoch_{epoch:02d}.pth"
             torch.save(self.model.state_dict(), epoch_ckpt_path)
 
-            # 5. --- TRACK AND SAVE THE BEST MODEL ---
+            # --- TRACK AND SAVE THE BEST MODEL ---
             # We check if the model's performance this epoch (measured by mIoU) is the
             # best we've seen so far. Since higher mIoU is better, we check for ">".
             if miou > self.best_miou:
-                self.best_miou = miou # Update the best mIoU score
+                self.best_miou = miou
                 
-                # Save a special copy of this model's weights as 'best_model.pth'.
-                # This gives us easy access to the top-performing model after training is complete.
-                best_ckpt_path = self.output_dir / "best_model.pth"
-                torch.save(self.model.state_dict(), best_ckpt_path)
-                logger.info(f"🏆 Saved NEW BEST model with mIoU {miou:.4f} to: {best_ckpt_path}")
+                # 1. If a previous best model file exists, delete it.
+                if self.best_ckpt_path and os.path.exists(self.best_ckpt_path):
+                    print(f"Removing old best model: {self.best_ckpt_path}")
+                    os.remove(self.best_ckpt_path)
+
+                # 2. Define the new path and save the new model.
+                new_best_path = self.model_save_dir / f"model_epoch_{epoch}_miou_{miou:.4f}.pth"
+                torch.save(self.model.state_dict(), new_best_path)
+                print(f"Saved NEW BEST model to: {new_best_path}")
+
+                # 3. Update the tracker to the new path.
+                self.best_ckpt_path = new_best_path
             
-            # 6. --- LEARNING RATE SCHEDULING ---
+            # --- SAVE HISTORY EVERY EPOCH ---
+            history = {
+                "train_loss": train_loss_lst,
+                "val_loss": val_loss_lst,
+                "miou": miou_lst,
+                "class_metrics_per_epoch": cls_metrics_lst
+            }
+            history_path = self.model_save_dir / "training_history.json"
+            with open(history_path, 'w') as f:
+                json.dump(history, f, indent=4)     
+
+            # --- LEARNING RATE SCHEDULING ---
             # If a scheduler is provided, we update it based on the validation loss.
             # For ReduceLROnPlateau, this will decrease the learning rate if the
             # validation loss plateaus (stops improving).
             if self.scheduler:
                 self.scheduler.step(val_loss)
 
-        print("\n\n🎉 Training complete! 🎉")
+        print("\n\nTraining complete!")
         logger.info(f"Best validation mIoU achieved during training: {self.best_miou:.4f}")
