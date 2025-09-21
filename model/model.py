@@ -62,7 +62,7 @@ def get_model(model_name: str, num_classes: int) -> torch.nn.Module:
         model.classifier[4] = torch.nn.Conv2d(256, num_classes, kernel_size=1)
 
     # --- ADD NEW MODELS HERE ---
-    # To add another model, you just add another 'elif' block. 
+    # To add another model, we just add another 'elif' block. 
     elif model_name == "fcn_resnet50":
         # Here we do the same for the FCN (Fully Convolutional Network) model.
         model = seg_models.fcn_resnet50(weights=FCN_ResNet50_Weights.DEFAULT)

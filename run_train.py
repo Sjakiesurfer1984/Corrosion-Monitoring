@@ -28,6 +28,9 @@ def get_args() -> argparse.Namespace:
     # Create a parser object
     parser = argparse.ArgumentParser(description="Train a semantic segmentation model.")
 
+    # --- Chpose the model for transer learning ---
+    parser.add_argument("--model_name", type=str, default="deeplabv3_resnet50", help="Model for transfer learning.")
+
     # --- Experiment Hyperparameters ---
     parser.add_argument("--epochs", type=int, default=5, help="Number of training epochs.")
     parser.add_argument("--batch_size", type=int, default=32, help="Number of samples per batch.")
@@ -37,8 +40,8 @@ def get_args() -> argparse.Namespace:
     # --- Data Paths (Set our default paths ONCE here) ---
     parser.add_argument("--train_img_dir", type=str, default="data/Train/images_512", help="Path to training images.")
     parser.add_argument("--train_mask_dir", type=str, default="data/Train/mask_512", help="Path to training masks.")
-    parser.add_argument("--val_img_dir", type=str, default="data/Validation/images_512", help="Path to validation images.") # This is marked as the TEST set by the original data provider
-    parser.add_argument("--val_mask_dir", type=str, default="data/Validation/mask_512", help="Path to validation masks.") # This is marked as the TEST set by the original data provider
+    parser.add_argument("--test_img_dir", type=str, default="data/Tes/images_512", help="Path to test images.") # This is marked as the TEST set by the original data provider
+    parser.add_argument("--test_mask_dir", type=str, default="data/Test/mask_512", help="Path to test masks.") # This is marked as the TEST set by the original data provider
     
     # --- System Configuration ---
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu", help="Device to use for training (cuda or cpu).")
@@ -47,6 +50,20 @@ def get_args() -> argparse.Namespace:
     # The `parse_args()` method reads the command-line inputs and returns an object
     # containing all the values.
     return parser.parse_args()
+
+# TO DO: Set up a ML OPS pipeline in MS Azure
+# A typical ML OPS pipeline looks like this:
+# Data Ingestion -> Data Validation & Preprocessing -> Model Training -> Model Evaluation -> Model Deployment
+
+# The "Recipe" for creating a Main loop must always be the same:
+# - set device to Cuda if available
+# - set some parameters (nr of classes)
+# - load data and transform too Pytorch Dataset type
+# - Split the train set in a train and validation set
+# - Create three Dataloader objects (Pytroch Dataloader)
+# - Create a neural network architecture, the "model"
+# - Set the criterion n(loss function), optimiser, a learning rate scheduler (if desired, to drop or increase LR when a plateau is hit),
+# an early stopper to stop training if (validation) loss and/or accuracy does not improve 
 
 def main() -> None:
     """The main function that orchestrates the entire training process."""
@@ -78,23 +95,41 @@ def main() -> None:
         mask_dir=args.train_mask_dir,
         augmentations=train_augs
     )
-    logger.debug(f"Corrosion train dataset object initialised: {train_dataset}")
+    logger.info(f"Loaded full original training dataset with {len(train_dataset)} samples.")
     print(f"Our corrosion train dataset object: {train_dataset}")
 
     # Create the validation dataset.
     # IMPORTANT: The validation set should NOT have random augmentations.
     # We need a stable, consistent benchmark to measure our model's progress.
-    val_dataset = CorrosionDataset(
-        image_dir=args.val_img_dir,
-        mask_dir=args.val_mask_dir,
+    test_dataset = CorrosionDataset(
+        image_dir=args.test_img_dir, # Noting that this is still the TEST set. 
+        mask_dir=args.test_mask_dir,
         augmentations=None  # No augmentations!
     )
-    print(f"Our corrosion validation dataset object: {val_dataset}")
+    print(f"Our corrosion validation dataset object: {test_dataset}")
 
     # The DataLoader is a PyTorch utility that takes our Dataset and automatically
     # handles batching, shuffling, and multi-threaded data loading for us.
+
+    # Calculate the size of our new training and validation sets.
+    # We'll use an 80/20 split.
+    train_size = int(0.8 * len(train_dataset))
+    val_size = len(train_dataset) - train_size
+
+    # Use random_split to create our two new datasets from the single train data source.
+    # We use a fixed seed (42) in the generator to make sure our split is the same
+    # every time we run the code, which is good for reproducibility.
+    # Note: without a generator, we would still get different random splits every time the code is run. 
+    # this is NOT desirable, because we want to be able to reproduce results. 
+    generator = torch.Generator().manual_seed(42)
+    train_dataset, val_dataset = torch.utils.data.random_split(
+        train_dataset, [train_size, val_size], generator=generator
+    )
+
+    # Create our dataloaders for the three datasets: train, validation, test
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=2)
     val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=2)
+    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=2)
 
     # --- MODEL ---
     # We call our model factory to get the desired model architecture.

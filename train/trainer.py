@@ -59,7 +59,7 @@ class Trainer:
                 print(f"[Epoch {epoch+1}] Batch {batch_idx}/{len(self.train_loader)} — loss: {loss.item():.4f}")
         
         avg_loss = total_loss / len(self.train_loader)
-        print(f"→ Epoch {epoch+1} training loss: {avg_loss:.4f}")
+        print(f"Epoch {epoch+1} training loss: {avg_loss:.4f}")
         return avg_loss
 
     # TO DO: define this method. 
@@ -202,8 +202,10 @@ class Trainer:
             torch.save(self.model.state_dict(), epoch_ckpt_path)
 
             # --- TRACK AND SAVE THE BEST MODEL ---
-            # We check if the model's performance this epoch (measured by mIoU) is the
+            # We check if the model's performance this epoch (MEASURED BY mIoU) is the
             # best we've seen so far. Since higher mIoU is better, we check for ">".
+            # Note that the early stopper Class and its instance check for VALIDATION LOSS. If val. loss does not improve
+            # for a number of 
             if miou > self.best_miou:
                 self.best_miou = miou
                 
